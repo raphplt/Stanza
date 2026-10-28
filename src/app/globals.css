@@ -1,0 +1,277 @@
+@import "tailwindcss";
+
+:root {
+  --paper: #fbf9f4;
+  --surface: #f4f1ea;
+  --ink: #1d1b18;
+  --muted: #6a645b;
+  --line: #e6e0d5;
+  --accent: #8c3a1f;
+  --accent-ink: #fbf9f4;
+  --danger: #a12a1f;
+  --focus: #8c3a1f;
+  color-scheme: light;
+}
+
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    --paper: #151412;
+    --surface: #1d1c19;
+    --ink: #ebe6dd;
+    --muted: #a39d92;
+    --line: #2e2b27;
+    --accent: #e3a483;
+    --accent-ink: #151412;
+    --danger: #f08b7f;
+    --focus: #e3a483;
+    color-scheme: dark;
+  }
+}
+
+:root[data-theme="dark"] {
+  --paper: #151412;
+  --surface: #1d1c19;
+  --ink: #ebe6dd;
+  --muted: #a39d92;
+  --line: #2e2b27;
+  --accent: #e3a483;
+  --accent-ink: #151412;
+  --danger: #f08b7f;
+  --focus: #e3a483;
+  color-scheme: dark;
+}
+
+@theme inline {
+  --color-paper: var(--paper);
+  --color-surface: var(--surface);
+  --color-ink: var(--ink);
+  --color-muted: var(--muted);
+  --color-line: var(--line);
+  --color-accent: var(--accent);
+  --color-accent-ink: var(--accent-ink);
+  --color-danger: var(--danger);
+  --font-sans: var(--font-inter), ui-sans-serif, system-ui, sans-serif;
+  --font-serif: var(--font-newsreader), ui-serif, Georgia, serif;
+  --container-read: 42.5rem;
+  --ease-out-soft: cubic-bezier(0.2, 0.8, 0.2, 1);
+}
+
+@layer base {
+  html {
+    -webkit-text-size-adjust: 100%;
+    text-rendering: optimizeLegibility;
+  }
+
+  body {
+    background: var(--paper);
+    color: var(--ink);
+    font-family: var(--font-sans);
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+  }
+
+  ::selection {
+    background: color-mix(in oklab, var(--accent) 22%, transparent);
+  }
+
+  :focus-visible {
+    outline: 2px solid var(--focus);
+    outline-offset: 2px;
+    border-radius: 4px;
+  }
+
+  button,
+  [role="button"] {
+    cursor: pointer;
+  }
+
+  button:disabled {
+    cursor: default;
+  }
+}
+
+@layer components {
+  .prose-stanza {
+    font-family: var(--font-serif);
+    font-size: 1.125rem;
+    line-height: 1.7;
+    max-width: var(--container-read);
+    overflow-wrap: break-word;
+    hyphens: auto;
+    font-optical-sizing: auto;
+  }
+
+  @media (min-width: 640px) {
+    .prose-stanza {
+      font-size: 1.25rem;
+    }
+  }
+
+  .prose-stanza > * + * {
+    margin-top: 1.1em;
+  }
+
+  .prose-stanza h2,
+  .prose-stanza h3,
+  .prose-stanza h4 {
+    font-weight: 600;
+    line-height: 1.25;
+    letter-spacing: -0.01em;
+    margin-top: 2em;
+  }
+
+  .prose-stanza h2 {
+    font-size: 1.5em;
+  }
+
+  .prose-stanza h3 {
+    font-size: 1.25em;
+  }
+
+  .prose-stanza h4 {
+    font-size: 1.05em;
+    font-style: italic;
+  }
+
+  .prose-stanza h2 + *,
+  .prose-stanza h3 + *,
+  .prose-stanza h4 + * {
+    margin-top: 0.6em;
+  }
+
+  .prose-stanza a {
+    text-decoration: underline;
+    text-decoration-color: color-mix(in oklab, var(--accent) 55%, transparent);
+    text-decoration-thickness: 1px;
+    text-underline-offset: 0.18em;
+    transition: text-decoration-color 150ms;
+  }
+
+  .prose-stanza a:hover {
+    text-decoration-color: var(--accent);
+  }
+
+  .prose-stanza strong {
+    font-weight: 650;
+  }
+
+  .prose-stanza blockquote {
+    border-left: 2px solid var(--line);
+    padding-left: 1.1em;
+    font-style: italic;
+    color: color-mix(in oklab, var(--ink) 82%, var(--paper));
+  }
+
+  .prose-stanza blockquote > * + * {
+    margin-top: 0.8em;
+  }
+
+  .prose-stanza ul,
+  .prose-stanza ol {
+    padding-left: 1.3em;
+  }
+
+  .prose-stanza ul {
+    list-style: disc;
+  }
+
+  .prose-stanza ol {
+    list-style: decimal;
+  }
+
+  .prose-stanza li + li {
+    margin-top: 0.35em;
+  }
+
+  .prose-stanza li::marker {
+    color: var(--muted);
+  }
+
+  .prose-stanza hr {
+    border: 0;
+    height: auto;
+    margin: 2.2em 0;
+    text-align: center;
+    overflow: visible;
+  }
+
+  .prose-stanza hr::after {
+    content: "⁂";
+    font-size: 1.15em;
+    color: var(--muted);
+    letter-spacing: 0.2em;
+  }
+
+  .prose-stanza figure {
+    margin-top: 1.8em;
+    margin-bottom: 1.8em;
+  }
+
+  .prose-stanza figure img {
+    width: 100%;
+    height: auto;
+    border-radius: 6px;
+    background: var(--surface);
+  }
+
+  .prose-stanza figcaption {
+    margin-top: 0.6em;
+    font-family: var(--font-sans);
+    font-size: 0.8125rem;
+    line-height: 1.5;
+    color: var(--muted);
+    text-align: center;
+  }
+
+  .prose-stanza s {
+    text-decoration-thickness: 1px;
+  }
+}
+
+@utility tap {
+  min-height: 44px;
+  min-width: 44px;
+}
+
+.reading-progress {
+  transform-origin: 0 50%;
+  transform: scaleX(0);
+}
+
+@supports (animation-timeline: scroll()) {
+  .reading-progress {
+    animation: reading-progress linear both;
+    animation-timeline: scroll(root block);
+  }
+}
+
+@keyframes reading-progress {
+  to {
+    transform: scaleX(1);
+  }
+}
+
+@view-transition {
+  navigation: auto;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
+
+  ::view-transition-group(*),
+  ::view-transition-old(*),
+  ::view-transition-new(*) {
+    animation: none !important;
+  }
+
+  .reading-progress {
+    display: none;
+  }
+}

@@ -1,0 +1,26 @@
+services:
+  postgres:
+    image: postgres:17-alpine
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres
+      POSTGRES_DB: stanza
+    ports:
+      - "127.0.0.1:55432:5432"
+    volumes:
+      - stanza-db:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres"]
+      interval: 5s
+      retries: 10
+  neon-proxy:
+    image: ghcr.io/timowilhelm/local-neon-http-proxy:main
+    environment:
+      PG_CONNECTION_STRING: postgres://postgres:postgres@postgres:5432/stanza
+    ports:
+      - "127.0.0.1:4444:4444"
+    depends_on:
+      postgres:
+        condition: service_healthy
+volumes:
+  stanza-db:
