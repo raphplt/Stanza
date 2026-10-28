@@ -275,3 +275,21 @@
     display: none;
   }
 }
+
+.ProseMirror p.is-editor-empty:first-child::before {
+  content: attr(data-placeholder);
+  float: left;
+  height: 0;
+  pointer-events: none;
+  color: color-mix(in oklab, var(--muted) 60%, transparent);
+}
+
+.ProseMirror figure.ProseMirror-selectednode img,
+.ProseMirror hr.ProseMirror-selectednode::after {
+  outline: 2px solid var(--focus);
+  outline-offset: 3px;
+}
+
+.ProseMirror .ProseMirror-gapcursor::after {
+  border-top-color: var(--ink);
+}

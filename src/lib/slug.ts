@@ -70,3 +70,10 @@ export function slugify(input: string): string {
     .replace(/-+$/g, "");
   return cleaned || "sans-titre";
 }
+
+export function foldForSearch(value: string): string {
+  return value
+    .normalize("NFD")
+    .replace(/[\u0300-\u036f]/g, "")
+    .toLowerCase();
+}
