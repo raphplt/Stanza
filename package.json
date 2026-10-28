@@ -9,7 +9,11 @@
     "lint": "biome check",
     "format": "biome check --write",
     "typecheck": "tsc --noEmit",
-    "test": "vitest run"
+    "test": "vitest run",
+    "db:generate": "drizzle-kit generate",
+    "db:migrate": "tsx src/db/migrate.ts",
+    "db:seed": "tsx src/db/seed.ts",
+    "db:restore": "tsx src/db/restore.ts"
   },
   "dependencies": {
     "@neondatabase/serverless": "^1.2.0",
