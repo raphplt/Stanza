@@ -153,6 +153,8 @@ export const post = pgTable(
     pinnedAt: timestamp("pinned_at", { withTimezone: true }),
     version: integer("version").notNull().default(1),
     publishedAt: timestamp("published_at", { withTimezone: true }),
+    lastPublishedAt: timestamp("last_published_at", { withTimezone: true }),
+    firstImageUrl: text("first_image_url"),
     createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
     updatedAt: timestamp("updated_at", { withTimezone: true }).notNull().defaultNow(),
     deletedAt: timestamp("deleted_at", { withTimezone: true }),

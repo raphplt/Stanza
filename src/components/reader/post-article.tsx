@@ -8,12 +8,14 @@ export function PostArticle({
   html,
   author,
   date,
+  modified,
   readingMinutes,
 }: {
   title: string;
   html: string;
   author: ArticleAuthor;
   date: { iso: string; label: string } | null;
+  modified?: { iso: string; label: string } | null;
   readingMinutes: number;
 }) {
   return (
@@ -22,7 +24,7 @@ export function PostArticle({
         <h1 className="font-serif text-4xl leading-tight font-medium tracking-tight sm:text-5xl">
           {title || "Sans titre"}
         </h1>
-        <div className="mt-6 flex items-center gap-3 text-sm text-muted">
+        <div className="mt-6 flex flex-wrap items-center gap-x-3 gap-y-2 text-sm text-muted">
           <Link href={`/${author.username}`} className="flex items-center gap-2.5 text-ink hover:underline">
             {author.image ? (
               <Image
@@ -48,6 +50,11 @@ export function PostArticle({
           <span aria-hidden="true">·</span>
           <span>{readingMinutes} min de lecture</span>
         </div>
+        {modified && (
+          <p className="mt-2 text-xs text-muted">
+            Modifié le <time dateTime={modified.iso}>{modified.label}</time>
+          </p>
+        )}
       </header>
       <div
         className="prose-stanza mt-10"

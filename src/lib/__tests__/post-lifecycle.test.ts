@@ -53,6 +53,15 @@ describe("post lifecycle", () => {
     expect(later.publishedAt).toBe(now);
   });
 
+  it("applies French typography to the published excerpt only", () => {
+    const patch = applyPublishOrUpdate(
+      { ...draft, excerpt: "Vraiment?" },
+      { targetStatus: "published", slug: "brouillon", frenchTypography: true },
+    );
+    expect(patch.excerpt).toBe("Vraiment?");
+    expect(patch.publishedExcerpt).toBe("Vraiment\u00A0?");
+  });
+
   it("keeps edits of a live text out of the online version", () => {
     const live = {
       ...draft,

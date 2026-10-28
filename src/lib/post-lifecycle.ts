@@ -6,6 +6,7 @@ import {
   renderProseMirrorToHtml,
   sanitizeProseMirrorJson,
 } from "@/lib/render";
+import { applyFrenchTypographyToText } from "@/lib/typo-fr";
 
 export type PostRow = typeof post.$inferSelect;
 export type PostPatch = Partial<PostRow>;
@@ -62,10 +63,12 @@ export function applyPublishOrUpdate(
     publishedTitle: title,
     publishedContent: content,
     publishedHtml: renderProseMirrorToHtml(content, { frenchTypography: options.frenchTypography }),
-    publishedExcerpt: excerpt,
+    publishedExcerpt: options.frenchTypography ? applyFrenchTypographyToText(excerpt) : excerpt,
     ogImageUrl,
     hasUnpublishedChanges: false,
     publishedAt: current.publishedAt ?? now,
+    lastPublishedAt: now,
+    firstImageUrl: extractFirstImageUrl(content),
     deletedAt: null,
     ...computeReadingStats(title, content),
     version: current.version + 1,
