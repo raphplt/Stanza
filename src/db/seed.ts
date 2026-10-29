@@ -31,8 +31,7 @@ export async function runSeed() {
       id: 1,
       siteName: "Stanza",
       tagline: "Des textes, rien que des textes.",
-      landingText:
-        "Un espace calme où quelques auteurs invités rédigent, publient et partagent leurs textes.",
+      landingText: "Un espace pour écrire et partager des textes.",
       accessRequestsOpen: true,
       showLatestPostsOnLanding: false,
       readOnlyMode: false,

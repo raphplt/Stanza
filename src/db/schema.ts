@@ -266,9 +266,7 @@ export const siteSettings = pgTable("site_settings", {
   id: integer("id").primaryKey().default(1),
   siteName: text("site_name").notNull().default("Stanza"),
   tagline: text("tagline").notNull().default("Des textes, rien que des textes."),
-  landingText: text("landing_text")
-    .notNull()
-    .default("Un espace calme où quelques auteurs invités rédigent, publient et partagent leurs textes."),
+  landingText: text("landing_text").notNull().default("Un espace pour écrire et partager des textes."),
   accessRequestsOpen: boolean("access_requests_open").notNull().default(true),
   showLatestPostsOnLanding: boolean("show_latest_posts_on_landing").notNull().default(false),
   readOnlyMode: boolean("read_only_mode").notNull().default(false),

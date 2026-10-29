@@ -3,6 +3,7 @@
 import type { JSONContent } from "@tiptap/core";
 import { and, count, desc, eq, isNotNull, isNull, notInArray } from "drizzle-orm";
 import { nanoid } from "nanoid";
+import { revalidatePath } from "next/cache";
 import { z } from "zod";
 import { db } from "@/db/client";
 import { post, postRevision, type RevisionReason, reaction, redirectTable, user } from "@/db/schema";
@@ -95,6 +96,7 @@ export async function createDraftPostAction() {
     const me = await requireWriter();
     const id = uuidv7();
     await db.insert(post).values({ id, authorId: me.id, slug: id, shareId: nanoid(12) });
+    revalidatePath("/studio");
     return { postId: id };
   });
 }
@@ -149,6 +151,7 @@ export async function saveDraftAction(input: z.infer<typeof saveSchema>): Promis
       ]);
     }
 
+    revalidatePath("/studio");
     return { conflict: false as const, ...updated };
   });
 
@@ -241,6 +244,7 @@ export async function publishPostAction(input: z.infer<typeof publishSchema>) {
 
     invalidatePost(current, me.username);
     touchTag(REDIRECTS_TAG);
+    revalidatePath("/studio");
 
     const row = updated[0] as PostRow;
     return {
@@ -265,6 +269,7 @@ export async function discardChangesAction(postId: string) {
       .set({ ...applyDiscardUnpublishedChanges(current), updatedAt: new Date() })
       .where(eq(post.id, current.id))
       .returning();
+    revalidatePath("/studio");
     return { version: row.version, title: row.title, content: row.content };
   });
 }
@@ -279,6 +284,7 @@ export async function unpublishPostAction(postId: string) {
       .where(eq(post.id, current.id))
       .returning({ version: post.version });
     invalidatePost(current, me.username);
+    revalidatePath("/studio");
     return { version: row.version };
   });
 }
@@ -292,6 +298,7 @@ export async function trashPostAction(postId: string) {
       .set({ ...applySoftDelete(), updatedAt: new Date() })
       .where(eq(post.id, current.id));
     if (isLive(current.status)) invalidatePost(current, me.username);
+    revalidatePath("/studio");
     return {};
   });
 }
@@ -306,6 +313,7 @@ export async function restorePostAction(postId: string, options: { undo?: boolea
       .set({ ...patch, updatedAt: new Date() })
       .where(eq(post.id, current.id));
     if (options.undo && isLive(current.status)) invalidatePost(current, me.username);
+    revalidatePath("/studio");
     return {};
   });
 }
@@ -321,6 +329,7 @@ export async function purgePostAction(postId: string) {
       );
     }
     await db.delete(post).where(eq(post.id, current.id));
+    revalidatePath("/studio");
     return {};
   });
 }
@@ -332,6 +341,7 @@ export async function emptyTrashAction() {
       .delete(post)
       .where(and(eq(post.authorId, me.id), isNotNull(post.deletedAt)))
       .returning({ id: post.id });
+    revalidatePath("/studio");
     return { count: deleted.length };
   });
 }
@@ -355,6 +365,7 @@ export async function duplicatePostAction(postId: string) {
         readingMinutes: source.readingMinutes,
       })
       .returning();
+    revalidatePath("/studio");
     return {
       post: {
         id: row.id,
@@ -464,6 +475,7 @@ export async function restoreRevisionAction(revisionId: string) {
       revisionInsert(owner.id, owner.title, owner.content, "restore"),
       pruneRevisions(owner.id),
     ]);
+    revalidatePath("/studio");
     return row;
   });
 }

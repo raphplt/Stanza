@@ -25,14 +25,6 @@ export type EditorPost = PublishState & {
 type SaveStatus = "saved" | "pending" | "offline" | "error" | "conflict";
 type Backup = { title: string; content: JSONContent; at: number };
 
-const STATUS_LABEL: Record<SaveStatus, string> = {
-  saved: "Enregistré",
-  pending: "Enregistrement…",
-  offline: "Hors ligne, modifications conservées",
-  error: "Échec de l'enregistrement, nouvel essai…",
-  conflict: "Non enregistré",
-};
-
 const SAVE_DELAY_MS = 1000;
 const RETRY_DELAY_MS = 5000;
 
@@ -71,6 +63,14 @@ export function EditorScreen({ post, username }: { post: EditorPost; username: s
   const [typing, setTyping] = useState(false);
   const [words, setWords] = useState(0);
   const typingTimer = useRef<ReturnType<typeof setTimeout> | undefined>(undefined);
+  const [justSaved, setJustSaved] = useState(false);
+  const justSavedTimer = useRef<ReturnType<typeof setTimeout> | undefined>(undefined);
+
+  useEffect(() => {
+    return () => {
+      clearTimeout(justSavedTimer.current);
+    };
+  }, []);
 
   const writeBackup = useCallback(() => {
     const d = doc.current;
@@ -144,6 +144,15 @@ export function EditorScreen({ post, username }: { post: EditorPost; username: s
   const flushRef = useRef(flush);
   flushRef.current = flush;
 
+  const handleManualSave = useCallback(async () => {
+    const ok = await flushRef.current(true);
+    if (ok) {
+      setJustSaved(true);
+      clearTimeout(justSavedTimer.current);
+      justSavedTimer.current = setTimeout(() => setJustSaved(false), 2000);
+    }
+  }, []);
+
   const markDirty = useCallback(() => {
     const d = doc.current;
     d.dirty = true;
@@ -215,7 +224,7 @@ export function EditorScreen({ post, username }: { post: EditorPost; username: s
       }
       if (mod && e.key.toLowerCase() === "s") {
         e.preventDefault();
-        flushRef.current();
+        handleManualSave();
         return;
       }
       if (e.key === "Escape" && focusMode && !panel) {
@@ -237,7 +246,7 @@ export function EditorScreen({ post, username }: { post: EditorPost; username: s
       window.removeEventListener("keydown", onKeyDown);
       window.removeEventListener("mousemove", onMouseMove);
     };
-  }, [focusMode, panel]);
+  }, [focusMode, panel, handleManualSave]);
 
   useEffect(() => {
     const el = titleRef.current;
@@ -301,8 +310,9 @@ export function EditorScreen({ post, username }: { post: EditorPost; username: s
   }
 
   async function leave() {
-    await flushRef.current();
+    await flushRef.current(true);
     router.push("/studio");
+    router.refresh();
   }
 
   async function openPreview() {
@@ -348,14 +358,49 @@ export function EditorScreen({ post, username }: { post: EditorPost; username: s
               <path d="M12.5 4.5L7 10l5.5 5.5" />
             </svg>
           </button>
-          <p role="status" aria-live="polite" className="min-w-0 flex-1 truncate text-xs text-muted">
-            {STATUS_LABEL[status]}
-            {live && publishState.hasUnpublishedChanges && (
-              <span className="ml-2 hidden rounded-full bg-accent/10 px-2 py-0.5 text-accent sm:inline">
-                Modifications non publiées
-              </span>
-            )}
-          </p>
+          <div className="flex min-w-0 flex-1 items-center gap-2">
+            <button
+              type="button"
+              onClick={handleManualSave}
+              disabled={status === "pending"}
+              title="Enregistrer maintenant (Ctrl+S)"
+              className="tap inline-flex items-center gap-1.5 rounded-full border border-line/60 bg-paper px-2.5 py-1 text-xs text-muted transition-colors hover:border-line hover:bg-surface hover:text-ink disabled:opacity-50"
+            >
+              {status === "pending" ? (
+                <>
+                  <span className="size-1.5 animate-pulse rounded-full bg-accent" aria-hidden="true" />
+                  <span>Enregistrement…</span>
+                </>
+              ) : justSaved ? (
+                <>
+                  <svg
+                    viewBox="0 0 16 16"
+                    className="size-3 text-accent"
+                    fill="none"
+                    stroke="currentColor"
+                    strokeWidth="2"
+                    aria-hidden="true"
+                  >
+                    <path d="M3.5 8.5l3 3 6-7" />
+                  </svg>
+                  <span>Enregistré</span>
+                </>
+              ) : (
+                <span>Enregistrer</span>
+              )}
+            </button>
+            <p role="status" aria-live="polite" className="min-w-0 truncate text-xs text-muted">
+              {status === "offline" && "Hors ligne, conservé localement"}
+              {status === "error" && "Échec de l'enregistrement, nouvel essai…"}
+              {status === "conflict" && "Non enregistré (conflit)"}
+              {status === "saved" && !justSaved && <span className="hidden sm:inline">Enregistré</span>}
+              {live && publishState.hasUnpublishedChanges && (
+                <span className="ml-2 hidden rounded-full bg-accent/10 px-2 py-0.5 text-accent sm:inline">
+                  Modifications non publiées
+                </span>
+              )}
+            </p>
+          </div>
           <button
             type="button"
             onClick={() => setFocusMode(true)}

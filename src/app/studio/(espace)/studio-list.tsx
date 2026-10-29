@@ -99,6 +99,30 @@ export function StudioList({
   const [resetting, startResetting] = useTransition();
 
   useEffect(() => {
+    setPosts(initialPosts);
+  }, [initialPosts]);
+
+  useEffect(() => {
+    setChecklist(initialChecklist);
+  }, [initialChecklist]);
+
+  useEffect(() => {
+    setTab(parseTab(searchParams.get("onglet")));
+  }, [searchParams]);
+
+  useEffect(() => {
+    function refreshData() {
+      router.refresh();
+    }
+    window.addEventListener("pageshow", refreshData);
+    window.addEventListener("focus", refreshData);
+    return () => {
+      window.removeEventListener("pageshow", refreshData);
+      window.removeEventListener("focus", refreshData);
+    };
+  }, [router]);
+
+  useEffect(() => {
     const params = new URLSearchParams();
     if (tab !== "brouillons") params.set("onglet", tab);
     if (query.trim()) params.set("q", query.trim());
