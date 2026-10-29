@@ -65,6 +65,11 @@ export function EditorScreen({ post, username }: { post: EditorPost; username: s
   const typingTimer = useRef<ReturnType<typeof setTimeout> | undefined>(undefined);
   const [justSaved, setJustSaved] = useState(false);
   const justSavedTimer = useRef<ReturnType<typeof setTimeout> | undefined>(undefined);
+  const [isLeaving, setIsLeaving] = useState(false);
+
+  useEffect(() => {
+    router.prefetch("/studio");
+  }, [router]);
 
   useEffect(() => {
     return () => {
@@ -309,11 +314,19 @@ export function EditorScreen({ post, username }: { post: EditorPost; username: s
     markDirty();
   }
 
-  async function leave() {
-    await flushRef.current(true);
-    router.push("/studio");
-    router.refresh();
-  }
+  const leave = useCallback(async () => {
+    if (isLeaving) return;
+    setIsLeaving(true);
+    try {
+      const d = doc.current;
+      if (d.dirty || d.inflight) {
+        await flushRef.current(false);
+      }
+      router.push("/studio");
+    } catch {
+      setIsLeaving(false);
+    }
+  }, [isLeaving, router]);
 
   async function openPreview() {
     const win = window.open("about:blank", "_blank");
@@ -344,19 +357,33 @@ export function EditorScreen({ post, username }: { post: EditorPost; username: s
           <button
             type="button"
             onClick={leave}
+            disabled={isLeaving}
             aria-label="Retour au studio"
-            className="tap flex items-center justify-center rounded-full text-muted hover:bg-surface hover:text-ink"
+            title="Retour au studio"
+            className="tap flex size-8 items-center justify-center rounded-full text-muted transition-colors hover:bg-surface hover:text-ink disabled:opacity-60"
           >
-            <svg
-              viewBox="0 0 20 20"
-              className="size-5"
-              fill="none"
-              stroke="currentColor"
-              strokeWidth="1.5"
-              aria-hidden="true"
-            >
-              <path d="M12.5 4.5L7 10l5.5 5.5" />
-            </svg>
+            {isLeaving ? (
+              <svg
+                viewBox="0 0 16 16"
+                className="size-4 animate-spin text-muted"
+                fill="none"
+                aria-hidden="true"
+              >
+                <circle cx="8" cy="8" r="6" stroke="currentColor" strokeWidth="2" strokeOpacity="0.25" />
+                <path d="M14 8a6 6 0 0 0-6-6" stroke="currentColor" strokeWidth="2" strokeLinecap="round" />
+              </svg>
+            ) : (
+              <svg
+                viewBox="0 0 20 20"
+                className="size-5"
+                fill="none"
+                stroke="currentColor"
+                strokeWidth="1.5"
+                aria-hidden="true"
+              >
+                <path d="M12.5 4.5L7 10l5.5 5.5" />
+              </svg>
+            )}
           </button>
           <div className="flex min-w-0 flex-1 items-center gap-2">
             <button
@@ -420,7 +447,7 @@ export function EditorScreen({ post, username }: { post: EditorPost; username: s
               )}
             </button>
             <p role="status" aria-live="polite" className="min-w-0 truncate text-xs text-muted">
-              {status === "pending" && (
+              {isLeaving && (doc.current.dirty || doc.current.inflight) ? (
                 <span className="inline-flex items-center gap-1.5 text-muted">
                   <svg
                     viewBox="0 0 16 16"
@@ -436,79 +463,108 @@ export function EditorScreen({ post, username }: { post: EditorPost; username: s
                       strokeLinecap="round"
                     />
                   </svg>
-                  <span className="hidden sm:inline">En cours d'enregistrement…</span>
+                  <span className="hidden sm:inline">Enregistrement avant sortie…</span>
                 </span>
-              )}
-              {status === "offline" && (
-                <span className="inline-flex items-center gap-1.5 text-muted">
-                  <svg
-                    viewBox="0 0 16 16"
-                    className="size-3 text-muted/70"
-                    fill="none"
-                    stroke="currentColor"
-                    strokeWidth="1.75"
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                    aria-hidden="true"
-                  >
-                    <path d="M2.5 12.5h9a3 3 0 00.5-5.96A4 4 0 004.5 9a2.5 2.5 0 00-2 3.5" />
-                    <path d="M2 2l12 12" />
-                  </svg>
-                  <span>Hors ligne, conservé localement</span>
-                </span>
-              )}
-              {status === "error" && (
-                <span className="inline-flex items-center gap-1.5 text-accent">
-                  <svg
-                    viewBox="0 0 16 16"
-                    className="size-3 text-accent"
-                    fill="none"
-                    stroke="currentColor"
-                    strokeWidth="1.75"
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                    aria-hidden="true"
-                  >
-                    <circle cx="8" cy="8" r="6" />
-                    <path d="M8 5v3.5M8 11.5h.01" />
-                  </svg>
-                  <span>Échec de l'enregistrement, nouvel essai…</span>
-                </span>
-              )}
-              {status === "conflict" && (
-                <span className="inline-flex items-center gap-1.5 text-accent">
-                  <svg
-                    viewBox="0 0 16 16"
-                    className="size-3 text-accent"
-                    fill="none"
-                    stroke="currentColor"
-                    strokeWidth="1.75"
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                    aria-hidden="true"
-                  >
-                    <path d="M8 2.5l5.5 10H2.5L8 2.5z" />
-                    <path d="M8 6.5v3M8 11.5h.01" />
-                  </svg>
-                  <span>Non enregistré (conflit)</span>
-                </span>
-              )}
-              {status === "saved" && !justSaved && (
-                <span className="inline-flex items-center gap-1.5 text-muted">
-                  <svg
-                    viewBox="0 0 16 16"
-                    className="size-3 text-muted/70"
-                    fill="none"
-                    stroke="currentColor"
-                    strokeWidth="2"
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                    aria-hidden="true"
-                  >
-                    <path d="M3.5 8.5l3 3 6-7" />
-                  </svg>
-                  <span className="hidden sm:inline">Enregistré</span>
-                </span>
+              ) : (
+                <>
+                  {status === "pending" && (
+                    <span className="inline-flex items-center gap-1.5 text-muted">
+                      <svg
+                        viewBox="0 0 16 16"
+                        className="size-3 animate-spin text-muted/70"
+                        fill="none"
+                        aria-hidden="true"
+                      >
+                        <circle
+                          cx="8"
+                          cy="8"
+                          r="6"
+                          stroke="currentColor"
+                          strokeWidth="2"
+                          strokeOpacity="0.25"
+                        />
+                        <path
+                          d="M14 8a6 6 0 0 0-6-6"
+                          stroke="currentColor"
+                          strokeWidth="2"
+                          strokeLinecap="round"
+                        />
+                      </svg>
+                      <span className="hidden sm:inline">En cours d'enregistrement…</span>
+                    </span>
+                  )}
+                  {status === "offline" && (
+                    <span className="inline-flex items-center gap-1.5 text-muted">
+                      <svg
+                        viewBox="0 0 16 16"
+                        className="size-3 text-muted/70"
+                        fill="none"
+                        stroke="currentColor"
+                        strokeWidth="1.75"
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                        aria-hidden="true"
+                      >
+                        <path d="M2.5 12.5h9a3 3 0 00.5-5.96A4 4 0 004.5 9a2.5 2.5 0 00-2 3.5" />
+                        <path d="M2 2l12 12" />
+                      </svg>
+                      <span>Hors ligne, conservé localement</span>
+                    </span>
+                  )}
+                  {status === "error" && (
+                    <span className="inline-flex items-center gap-1.5 text-accent">
+                      <svg
+                        viewBox="0 0 16 16"
+                        className="size-3 text-accent"
+                        fill="none"
+                        stroke="currentColor"
+                        strokeWidth="1.75"
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                        aria-hidden="true"
+                      >
+                        <circle cx="8" cy="8" r="6" />
+                        <path d="M8 5v3.5M8 11.5h.01" />
+                      </svg>
+                      <span>Échec de l'enregistrement, nouvel essai…</span>
+                    </span>
+                  )}
+                  {status === "conflict" && (
+                    <span className="inline-flex items-center gap-1.5 text-accent">
+                      <svg
+                        viewBox="0 0 16 16"
+                        className="size-3 text-accent"
+                        fill="none"
+                        stroke="currentColor"
+                        strokeWidth="1.75"
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                        aria-hidden="true"
+                      >
+                        <path d="M8 2.5l5.5 10H2.5L8 2.5z" />
+                        <path d="M8 6.5v3M8 11.5h.01" />
+                      </svg>
+                      <span>Non enregistré (conflit)</span>
+                    </span>
+                  )}
+                  {status === "saved" && !justSaved && (
+                    <span className="inline-flex items-center gap-1.5 text-muted">
+                      <svg
+                        viewBox="0 0 16 16"
+                        className="size-3 text-muted/70"
+                        fill="none"
+                        stroke="currentColor"
+                        strokeWidth="2"
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                        aria-hidden="true"
+                      >
+                        <path d="M3.5 8.5l3 3 6-7" />
+                      </svg>
+                      <span className="hidden sm:inline">Enregistré</span>
+                    </span>
+                  )}
+                </>
               )}
               {live && publishState.hasUnpublishedChanges && (
                 <span className="ml-2 hidden rounded-full bg-accent/10 px-2 py-0.5 text-accent sm:inline">
