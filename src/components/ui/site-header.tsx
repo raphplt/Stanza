@@ -103,7 +103,10 @@ export function SiteHeader({
         }`}
       >
         <div className="mx-auto flex h-14 w-full max-w-4xl items-center justify-between px-4 sm:px-6">
-          <Link href="/" className="font-serif text-xl font-medium tracking-tight text-ink">
+          <Link
+            href={user ? "/studio" : "/"}
+            className="font-serif text-xl font-medium tracking-tight text-ink"
+          >
             Stanza
           </Link>
 

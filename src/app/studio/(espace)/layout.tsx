@@ -10,7 +10,7 @@ export const metadata: Metadata = {
 export default function StudioLayout({ children }: { children: React.ReactNode }) {
   return (
     <>
-      <Suspense fallback={<SiteHeaderFallback />}>
+      <Suspense fallback={<SiteHeaderFallback logoHref="/studio" />}>
         <SiteHeaderServer />
       </Suspense>
       <main className="mx-auto w-full max-w-4xl flex-1 px-4 pt-8 pb-24 sm:px-6 sm:pt-12">{children}</main>
