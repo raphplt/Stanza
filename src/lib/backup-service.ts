@@ -19,7 +19,7 @@ export async function runBackup() {
     let blobPath = name;
     if (hasBlobToken()) {
       const result = await put(name, Buffer.from(bytes), {
-        access: "private",
+        access: "public",
         contentType: "application/gzip",
         addRandomSuffix: true,
       });
@@ -39,7 +39,7 @@ export async function runBackup() {
 
 export async function readBackup(blobPath: string): Promise<ReadableStream<Uint8Array> | Blob | null> {
   if (hasBlobToken()) {
-    const result = await get(blobPath, { access: "private" });
+    const result = await get(blobPath, { access: "public" });
     return result?.statusCode === 200 ? result.stream : null;
   }
   const file = path.resolve(LOCAL_DIR, blobPath);
