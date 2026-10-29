@@ -368,7 +368,20 @@ export function EditorScreen({ post, username }: { post: EditorPost; username: s
             >
               {status === "pending" ? (
                 <>
-                  <span className="size-1.5 animate-pulse rounded-full bg-accent" aria-hidden="true" />
+                  <svg
+                    viewBox="0 0 16 16"
+                    className="size-3 animate-spin text-muted"
+                    fill="none"
+                    aria-hidden="true"
+                  >
+                    <circle cx="8" cy="8" r="6" stroke="currentColor" strokeWidth="2" strokeOpacity="0.25" />
+                    <path
+                      d="M14 8a6 6 0 0 0-6-6"
+                      stroke="currentColor"
+                      strokeWidth="2"
+                      strokeLinecap="round"
+                    />
+                  </svg>
                   <span>Enregistrement…</span>
                 </>
               ) : justSaved ? (
@@ -379,6 +392,8 @@ export function EditorScreen({ post, username }: { post: EditorPost; username: s
                     fill="none"
                     stroke="currentColor"
                     strokeWidth="2"
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
                     aria-hidden="true"
                   >
                     <path d="M3.5 8.5l3 3 6-7" />
@@ -386,14 +401,115 @@ export function EditorScreen({ post, username }: { post: EditorPost; username: s
                   <span>Enregistré</span>
                 </>
               ) : (
-                <span>Enregistrer</span>
+                <>
+                  <svg
+                    viewBox="0 0 16 16"
+                    className="size-3 text-muted/70"
+                    fill="none"
+                    stroke="currentColor"
+                    strokeWidth="1.75"
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    aria-hidden="true"
+                  >
+                    <path d="M12.5 13.5H3.5a1 1 0 01-1-1V3.5a1 1 0 011-1h6.5l3.5 3.5v6.5a1 1 0 01-1 1z" />
+                    <path d="M5.5 2.5v3h4v-3M5.5 13.5v-4h5v4" />
+                  </svg>
+                  <span>Enregistrer</span>
+                </>
               )}
             </button>
             <p role="status" aria-live="polite" className="min-w-0 truncate text-xs text-muted">
-              {status === "offline" && "Hors ligne, conservé localement"}
-              {status === "error" && "Échec de l'enregistrement, nouvel essai…"}
-              {status === "conflict" && "Non enregistré (conflit)"}
-              {status === "saved" && !justSaved && <span className="hidden sm:inline">Enregistré</span>}
+              {status === "pending" && (
+                <span className="inline-flex items-center gap-1.5 text-muted">
+                  <svg
+                    viewBox="0 0 16 16"
+                    className="size-3 animate-spin text-muted/70"
+                    fill="none"
+                    aria-hidden="true"
+                  >
+                    <circle cx="8" cy="8" r="6" stroke="currentColor" strokeWidth="2" strokeOpacity="0.25" />
+                    <path
+                      d="M14 8a6 6 0 0 0-6-6"
+                      stroke="currentColor"
+                      strokeWidth="2"
+                      strokeLinecap="round"
+                    />
+                  </svg>
+                  <span className="hidden sm:inline">En cours d'enregistrement…</span>
+                </span>
+              )}
+              {status === "offline" && (
+                <span className="inline-flex items-center gap-1.5 text-muted">
+                  <svg
+                    viewBox="0 0 16 16"
+                    className="size-3 text-muted/70"
+                    fill="none"
+                    stroke="currentColor"
+                    strokeWidth="1.75"
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    aria-hidden="true"
+                  >
+                    <path d="M2.5 12.5h9a3 3 0 00.5-5.96A4 4 0 004.5 9a2.5 2.5 0 00-2 3.5" />
+                    <path d="M2 2l12 12" />
+                  </svg>
+                  <span>Hors ligne, conservé localement</span>
+                </span>
+              )}
+              {status === "error" && (
+                <span className="inline-flex items-center gap-1.5 text-accent">
+                  <svg
+                    viewBox="0 0 16 16"
+                    className="size-3 text-accent"
+                    fill="none"
+                    stroke="currentColor"
+                    strokeWidth="1.75"
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    aria-hidden="true"
+                  >
+                    <circle cx="8" cy="8" r="6" />
+                    <path d="M8 5v3.5M8 11.5h.01" />
+                  </svg>
+                  <span>Échec de l'enregistrement, nouvel essai…</span>
+                </span>
+              )}
+              {status === "conflict" && (
+                <span className="inline-flex items-center gap-1.5 text-accent">
+                  <svg
+                    viewBox="0 0 16 16"
+                    className="size-3 text-accent"
+                    fill="none"
+                    stroke="currentColor"
+                    strokeWidth="1.75"
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    aria-hidden="true"
+                  >
+                    <path d="M8 2.5l5.5 10H2.5L8 2.5z" />
+                    <path d="M8 6.5v3M8 11.5h.01" />
+                  </svg>
+                  <span>Non enregistré (conflit)</span>
+                </span>
+              )}
+              {status === "saved" && !justSaved && (
+                <span className="inline-flex items-center gap-1.5 text-muted">
+                  <svg
+                    viewBox="0 0 16 16"
+                    className="size-3 text-muted/70"
+                    fill="none"
+                    stroke="currentColor"
+                    strokeWidth="2"
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    aria-hidden="true"
+                  >
+                    <path d="M3.5 8.5l3 3 6-7" />
+                  </svg>
+                  <span className="hidden sm:inline">Enregistré</span>
+                </span>
+              )}
               {live && publishState.hasUnpublishedChanges && (
                 <span className="ml-2 hidden rounded-full bg-accent/10 px-2 py-0.5 text-accent sm:inline">
                   Modifications non publiées

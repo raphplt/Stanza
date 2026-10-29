@@ -36,10 +36,40 @@ export function useSaver() {
 }
 
 export function SaveStatus({ state }: { state: SaveState }) {
-  const label = state === "saving" ? "Enregistrement…" : state === "saved" ? "Enregistré" : "";
+  if (!state) return null;
   return (
-    <span aria-live="polite" className="text-xs text-muted">
-      {label}
+    <span aria-live="polite" className="inline-flex items-center gap-1.5 text-xs text-muted">
+      {state === "saving" && (
+        <>
+          <svg
+            viewBox="0 0 16 16"
+            className="size-3 animate-spin text-muted/70"
+            fill="none"
+            aria-hidden="true"
+          >
+            <circle cx="8" cy="8" r="6" stroke="currentColor" strokeWidth="2" strokeOpacity="0.25" />
+            <path d="M14 8a6 6 0 0 0-6-6" stroke="currentColor" strokeWidth="2" strokeLinecap="round" />
+          </svg>
+          <span>Enregistrement…</span>
+        </>
+      )}
+      {state === "saved" && (
+        <>
+          <svg
+            viewBox="0 0 16 16"
+            className="size-3 text-muted/70"
+            fill="none"
+            stroke="currentColor"
+            strokeWidth="2"
+            strokeLinecap="round"
+            strokeLinejoin="round"
+            aria-hidden="true"
+          >
+            <path d="M3.5 8.5l3 3 6-7" />
+          </svg>
+          <span>Enregistré</span>
+        </>
+      )}
     </span>
   );
 }
