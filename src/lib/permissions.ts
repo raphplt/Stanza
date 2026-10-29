@@ -1,9 +1,11 @@
 import { eq } from "drizzle-orm";
 import { headers } from "next/headers";
 import { redirect } from "next/navigation";
+import { cache } from "react";
 import { db } from "@/db/client";
-import { siteSettings, type UserRole, type UserStatus, user } from "@/db/schema";
+import { type UserRole, type UserStatus, user } from "@/db/schema";
 import { auth } from "@/lib/auth";
+import { getSiteSettings } from "./public-data";
 
 export class PermissionError extends Error {
   statusCode: number;
@@ -51,7 +53,7 @@ export function assertNotSelfAdminAction(targetUserId: string, adminUserId: stri
   }
 }
 
-export async function getOptionalSession() {
+export const getOptionalSession = cache(async () => {
   try {
     const reqHeaders = await headers();
     const sessionData = await auth.api.getSession({ headers: reqHeaders });
@@ -71,7 +73,7 @@ export async function getOptionalSession() {
   } catch {
     return null;
   }
-}
+});
 
 export async function requireUser() {
   const data = await getOptionalSession();
@@ -103,12 +105,10 @@ export async function requireActionSuperAdmin() {
   return data;
 }
 
-export async function isReadOnlyMode(): Promise<boolean> {
-  const row = await db.query.siteSettings.findFirst({
-    where: eq(siteSettings.id, 1),
-  });
-  return Boolean(row?.readOnlyMode);
-}
+export const isReadOnlyMode = cache(async (): Promise<boolean> => {
+  const settings = await getSiteSettings();
+  return Boolean(settings?.readOnlyMode);
+});
 
 export async function assertWritable(): Promise<void> {
   if (await isReadOnlyMode()) {

@@ -1,6 +1,8 @@
 import type { Metadata, Viewport } from "next";
 import { Inter, Newsreader } from "next/font/google";
+import { Suspense } from "react";
 import { Toaster } from "sonner";
+import { NavigationProgress } from "@/components/ui/navigation-progress";
 import { siteUrl } from "@/lib/site";
 import "./globals.css";
 
@@ -43,6 +45,9 @@ export default function RootLayout({ children }: LayoutProps<"/">) {
         <script dangerouslySetInnerHTML={{ __html: themeScript }} />
       </head>
       <body className="flex min-h-dvh flex-col">
+        <Suspense fallback={null}>
+          <NavigationProgress />
+        </Suspense>
         {children}
         <Toaster
           position="bottom-center"
