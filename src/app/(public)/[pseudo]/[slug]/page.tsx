@@ -4,8 +4,10 @@ import { notFound, permanentRedirect } from "next/navigation";
 import { Suspense } from "react";
 import { JsonLd } from "@/components/reader/json-ld";
 import { PostArticle } from "@/components/reader/post-article";
+import { PostNavigation } from "@/components/reader/post-navigation";
 import { Reactions } from "@/components/reader/reactions";
 import { ShareButton } from "@/components/reader/share-button";
+import { ViewTracker } from "@/components/reader/view-tracker";
 import { SiteHeaderFallback, SiteHeaderServer } from "@/components/ui/site-header-server";
 import { formatFrenchDate, shouldShowModifiedDate } from "@/lib/dates";
 import { getPublishedPost, getSampleParams, resolveRedirect } from "@/lib/public-data";
@@ -89,6 +91,7 @@ export default async function PostPage({ params }: PageProps<"/[pseudo]/[slug]">
           modified={modified}
           readingMinutes={post.readingMinutes}
         />
+        <ViewTracker postId={post.id} />
         <div className="mx-auto mt-16 w-full max-w-read px-5">
           {author.reactionsEnabled && (
             <div className="mb-10">
@@ -104,28 +107,7 @@ export default async function PostPage({ params }: PageProps<"/[pseudo]/[slug]">
             </Link>
             <ShareButton title={post.title} path={path} />
           </div>
-          {(previous || next) && (
-            <nav aria-label="Autres textes" className="mt-10 grid gap-4 sm:grid-cols-2">
-              {previous && (
-                <Link
-                  href={`/${author.username}/${previous.slug}`}
-                  className="rounded-xl border border-line p-4 transition-colors hover:bg-surface"
-                >
-                  <span className="block text-xs text-muted">Texte précédent</span>
-                  <span className="mt-1 block font-serif text-lg leading-snug">{previous.title}</span>
-                </Link>
-              )}
-              {next && (
-                <Link
-                  href={`/${author.username}/${next.slug}`}
-                  className="rounded-xl border border-line p-4 text-right transition-colors hover:bg-surface sm:col-start-2"
-                >
-                  <span className="block text-xs text-muted">Texte suivant</span>
-                  <span className="mt-1 block font-serif text-lg leading-snug">{next.title}</span>
-                </Link>
-              )}
-            </nav>
-          )}
+          <PostNavigation authorUsername={author.username} previous={previous} next={next} />
         </div>
       </main>
     </>

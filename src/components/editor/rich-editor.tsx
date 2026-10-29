@@ -153,6 +153,16 @@ export function RichEditor({
       keywords: "ornement strophe scene",
       run: (e) => e.chain().focus().setHorizontalRule().run(),
     },
+    {
+      label: "Centrer",
+      keywords: "centre aligner poesie vers",
+      run: (e) => e.chain().focus().setTextAlign("center").run(),
+    },
+    {
+      label: "Aligner à gauche",
+      keywords: "gauche normal aligner",
+      run: (e) => e.chain().focus().setTextAlign("left").run(),
+    },
   ];
   const filteredSlash = slash
     ? slashItems.filter((item) =>
@@ -250,6 +260,7 @@ export function RichEditor({
             quote: e.isActive("blockquote"),
             bulletList: e.isActive("bulletList"),
             image: e.isActive("image"),
+            center: e.isActive({ textAlign: "center" }),
             href: (e.getAttributes("link").href as string | undefined) ?? "",
           }
         : null,
@@ -301,6 +312,7 @@ export function RichEditor({
     quote: false,
     bulletList: false,
     image: false,
+    center: false,
     href: "",
   };
   const currentActive = active ?? defaultActive;
@@ -358,6 +370,19 @@ export function RichEditor({
       on: currentActive.quote,
       run: () => editor.chain().focus().toggleBlockquote().run(),
       cls: "font-serif text-lg",
+    },
+    {
+      label: "Centrer",
+      short: "≡",
+      on: currentActive.center,
+      run: () => {
+        if (editor.isActive({ textAlign: "center" })) {
+          editor.chain().focus().setTextAlign("left").run();
+        } else {
+          editor.chain().focus().setTextAlign("center").run();
+        }
+      },
+      cls: "text-base",
     },
   ];
 

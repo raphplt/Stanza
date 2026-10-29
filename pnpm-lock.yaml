@@ -216,6 +216,9 @@ importers:
       "@tiptap/extension-image":
         specifier: ^3.32.0
         version: 3.32.0(@tiptap/core@3.32.0(@tiptap/pm@3.32.0))
+      "@tiptap/extension-text-align":
+        specifier: ^3.32.1
+        version: 3.32.1(@tiptap/core@3.32.0(@tiptap/pm@3.32.0))
       "@tiptap/extensions":
         specifier: ^3.32.0
         version: 3.32.0(@tiptap/core@3.32.0(@tiptap/pm@3.32.0))(@tiptap/pm@3.32.0)
@@ -2089,6 +2092,14 @@ packages:
       }
     peerDependencies:
       "@tiptap/core": 3.32.0
+
+  "@tiptap/extension-text-align@3.32.1":
+    resolution:
+      {
+        integrity: sha512-7itMaHxwih+HRj2PJsucptPb55mqbnMs6TUNc/Luh2rYu9tuCBhI6n1+IHPdCnmIs8VzRVrG/oZlWx/5nwNEaQ==,
+      }
+    peerDependencies:
+      "@tiptap/core": 3.32.1
 
   "@tiptap/extension-text@3.32.0":
     resolution:
@@ -4238,6 +4249,10 @@ snapshots:
       "@tiptap/core": 3.32.0(@tiptap/pm@3.32.0)
 
   "@tiptap/extension-strike@3.32.0(@tiptap/core@3.32.0(@tiptap/pm@3.32.0))":
+    dependencies:
+      "@tiptap/core": 3.32.0(@tiptap/pm@3.32.0)
+
+  "@tiptap/extension-text-align@3.32.1(@tiptap/core@3.32.0(@tiptap/pm@3.32.0))":
     dependencies:
       "@tiptap/core": 3.32.0(@tiptap/pm@3.32.0)
 

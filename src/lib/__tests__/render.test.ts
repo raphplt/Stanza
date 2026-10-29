@@ -57,6 +57,26 @@ describe("renderProseMirrorToHtml", () => {
     expect(html).toBe("<h2>A</h2><h4>B</h4>");
   });
 
+  it("preserves centered text alignment on paragraphs and headings", () => {
+    const html = renderProseMirrorToHtml(
+      doc(
+        {
+          type: "paragraph",
+          attrs: { textAlign: "center" },
+          content: [{ type: "text", text: "Vers au centre" }],
+        },
+        {
+          type: "heading",
+          attrs: { level: 2, textAlign: "center" },
+          content: [{ type: "text", text: "Titre centré" }],
+        },
+      ),
+    );
+    expect(html).toContain('style="text-align: center"');
+    expect(html).toContain("Vers au centre");
+    expect(html).toContain("Titre centré");
+  });
+
   it("renders images as figures and rejects unsafe sources", () => {
     const html = renderProseMirrorToHtml(
       doc(

@@ -2,7 +2,7 @@ import { and, count, desc, eq, isNull } from "drizzle-orm";
 import Link from "next/link";
 import { Suspense } from "react";
 import { db } from "@/db/client";
-import { accessRequest, backup, post, user } from "@/db/schema";
+import { accessRequest, backup, post, postView, user } from "@/db/schema";
 import { formatFrenchDateTime } from "@/lib/dates";
 import { requireSuperAdmin } from "@/lib/permissions";
 import { Badge, PageTitle } from "./ui";
@@ -20,7 +20,7 @@ export default function AdminOverviewPage() {
 
 async function Overview() {
   await requireSuperAdmin();
-  const [[authors], [published], [pending], [last]] = await Promise.all([
+  const [[authors], [published], [totalViews], [pending], [last]] = await Promise.all([
     db
       .select({ total: count() })
       .from(user)
@@ -29,6 +29,7 @@ async function Overview() {
       .select({ total: count() })
       .from(post)
       .where(and(eq(post.status, "published"), isNull(post.deletedAt))),
+    db.select({ total: count() }).from(postView),
     db.select({ total: count() }).from(accessRequest).where(eq(accessRequest.status, "pending")),
     db.select().from(backup).orderBy(desc(backup.createdAt)).limit(1),
   ]);
@@ -36,12 +37,13 @@ async function Overview() {
   const stats = [
     { label: "Auteurs actifs", value: authors.total, href: "/admin/comptes" },
     { label: "Textes publiés", value: published.total, href: "/admin/textes" },
+    { label: "Lectures totales", value: totalViews.total, href: "/admin/textes" },
     { label: "Demandes en attente", value: pending.total, href: "/admin/demandes" },
   ];
 
   return (
     <div className="space-y-4">
-      <div className="grid gap-4 sm:grid-cols-3">
+      <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
         {stats.map((s) => (
           <Link
             key={s.label}

@@ -1,5 +1,6 @@
 import type { AnyExtension } from "@tiptap/core";
 import Image from "@tiptap/extension-image";
+import TextAlign from "@tiptap/extension-text-align";
 import StarterKit from "@tiptap/starter-kit";
 
 export function isAllowedLinkHref(href: unknown): href is string {
@@ -106,5 +107,10 @@ export function getStanzaCoreExtensions(): AnyExtension[] {
       },
     }),
     StanzaImage,
+    TextAlign.configure({
+      types: ["heading", "paragraph"],
+      alignments: ["left", "center", "right"],
+      defaultAlignment: null,
+    }),
   ];
 }

@@ -9,6 +9,7 @@ import {
   passwordReset,
   post,
   postRevision,
+  postView,
   rateLimit,
   reaction,
   redirectTable,
@@ -31,6 +32,7 @@ export type DatabaseDump = {
     post: (typeof post.$inferSelect)[];
     postRevision: (typeof postRevision.$inferSelect)[];
     reaction: (typeof reaction.$inferSelect)[];
+    postView?: (typeof postView.$inferSelect)[];
     invitation: (typeof invitation.$inferSelect)[];
     accessRequest: (typeof accessRequest.$inferSelect)[];
     passwordReset: (typeof passwordReset.$inferSelect)[];
@@ -51,6 +53,7 @@ export async function exportDatabaseDump(): Promise<DatabaseDump> {
     postRows,
     postRevisionRows,
     reactionRows,
+    postViewRows,
     invitationRows,
     accessRequestRows,
     passwordResetRows,
@@ -67,6 +70,7 @@ export async function exportDatabaseDump(): Promise<DatabaseDump> {
     db.select().from(post),
     db.select().from(postRevision),
     db.select().from(reaction),
+    db.select().from(postView),
     db.select().from(invitation),
     db.select().from(accessRequest),
     db.select().from(passwordReset),
@@ -88,6 +92,7 @@ export async function exportDatabaseDump(): Promise<DatabaseDump> {
       post: postRows,
       postRevision: postRevisionRows,
       reaction: reactionRows,
+      postView: postViewRows,
       invitation: invitationRows,
       accessRequest: accessRequestRows,
       passwordReset: passwordResetRows,
@@ -140,6 +145,7 @@ export function parseDumpBuffer(bytes: Uint8Array): DatabaseDump {
 
 export async function restoreDatabaseDump(dump: DatabaseDump): Promise<void> {
   await db.delete(reaction);
+  await db.delete(postView);
   await db.delete(postRevision);
   await db.delete(post);
   await db.delete(invitation);
@@ -182,6 +188,9 @@ export async function restoreDatabaseDump(dump: DatabaseDump): Promise<void> {
   }
   if (t.reaction?.length) {
     await db.insert(reaction).values(t.reaction.map(reviveRowDates));
+  }
+  if (t.postView?.length) {
+    await db.insert(postView).values(t.postView.map(reviveRowDates));
   }
   if (t.invitation?.length) {
     await db.insert(invitation).values(t.invitation.map(reviveRowDates));

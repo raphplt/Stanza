@@ -4,6 +4,7 @@ import { Suspense } from "react";
 import { PostArticle } from "@/components/reader/post-article";
 import { Reactions } from "@/components/reader/reactions";
 import { ShareButton } from "@/components/reader/share-button";
+import { ViewTracker } from "@/components/reader/view-tracker";
 import { SiteHeaderFallback, SiteHeaderServer } from "@/components/ui/site-header-server";
 import { formatFrenchDate } from "@/lib/dates";
 import { getUnlistedPost } from "@/lib/public-data";
@@ -49,6 +50,7 @@ export default async function UnlistedPostPage({ params }: PageProps<"/s/[shareI
           }
           readingMinutes={row.readingMinutes}
         />
+        <ViewTracker postId={row.id} />
         <div className="mx-auto mt-16 w-full max-w-read px-5">
           {row.author.reactionsEnabled && (
             <div className="mb-10">

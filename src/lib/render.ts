@@ -93,9 +93,25 @@ function sanitizeNode(node: JSONContent): JSONContent | null {
   if (node.type === "heading") {
     const rawLevel = Number(node.attrs?.level ?? 2);
     const level = rawLevel <= 2 ? 2 : rawLevel === 3 ? 3 : 4;
+    const textAlign =
+      typeof node.attrs?.textAlign === "string" && ["left", "center", "right"].includes(node.attrs.textAlign)
+        ? node.attrs.textAlign
+        : undefined;
     return {
       type: "heading",
-      attrs: { level },
+      attrs: { level, ...(textAlign && textAlign !== "left" ? { textAlign } : {}) },
+      ...(children.length > 0 ? { content: children } : {}),
+    };
+  }
+
+  if (node.type === "paragraph") {
+    const textAlign =
+      typeof node.attrs?.textAlign === "string" && ["left", "center", "right"].includes(node.attrs.textAlign)
+        ? node.attrs.textAlign
+        : undefined;
+    return {
+      type: "paragraph",
+      ...(textAlign && textAlign !== "left" ? { attrs: { textAlign } } : {}),
       ...(children.length > 0 ? { content: children } : {}),
     };
   }

@@ -1,8 +1,8 @@
-import { and, asc, desc, eq, inArray, isNull } from "drizzle-orm";
+import { and, asc, count, desc, eq, inArray, isNull } from "drizzle-orm";
 import type { Metadata } from "next";
 import { Suspense } from "react";
 import { db } from "@/db/client";
-import { post, user } from "@/db/schema";
+import { post, postView, user } from "@/db/schema";
 import { formatShortFrenchDate } from "@/lib/dates";
 import { requireSuperAdmin } from "@/lib/permissions";
 import { PageTitle, TableSkeleton } from "../ui";
@@ -51,6 +51,16 @@ async function Posts({ searchParams }: Pick<PageProps<"/admin/textes">, "searchP
       .limit(500),
   ]);
 
+  const postIds = rows.map((r) => r.id);
+  const viewRows = postIds.length
+    ? await db
+        .select({ postId: postView.postId, total: count() })
+        .from(postView)
+        .where(inArray(postView.postId, postIds))
+        .groupBy(postView.postId)
+    : [];
+  const viewsMap = new Map(viewRows.map((r) => [r.postId, r.total]));
+
   return (
     <PostsTable
       key={authorFilter}
@@ -63,6 +73,7 @@ async function Posts({ searchParams }: Pick<PageProps<"/admin/textes">, "searchP
         status: r.status as "published" | "unlisted",
         author: r.author,
         date: r.publishedAt ? formatShortFrenchDate(r.publishedAt) : "",
+        views: viewsMap.get(r.id) ?? 0,
       }))}
     />
   );

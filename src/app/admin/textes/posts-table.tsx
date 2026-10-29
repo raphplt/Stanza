@@ -14,6 +14,7 @@ type AdminPost = {
   status: "published" | "unlisted";
   author: string;
   date: string;
+  views: number;
 };
 
 export function PostsTable({
@@ -90,6 +91,7 @@ export function PostsTable({
               <th className={thClass}>Titre</th>
               <th className={thClass}>Auteur</th>
               <th className={thClass}>Statut</th>
+              <th className={`${thClass} text-right`}>Lectures</th>
               <th className={thClass}>Publication</th>
               <th className={thClass}>
                 <span className="sr-only">Actions</span>
@@ -110,6 +112,7 @@ export function PostsTable({
                     {p.status === "published" ? "Publié" : "Non listé"}
                   </Badge>
                 </td>
+                <td className={`${tdClass} text-right text-muted tabular-nums`}>{p.views}</td>
                 <td className={`${tdClass} text-muted`}>{p.date}</td>
                 <td className={`${tdClass} text-right`}>
                   <Menu label={`Actions pour ${p.title}`} items={items(p)} />

@@ -198,6 +198,22 @@ export const reaction = pgTable(
   ],
 );
 
+export const postView = pgTable(
+  "post_view",
+  {
+    postId: text("post_id")
+      .notNull()
+      .references(() => post.id, { onDelete: "cascade" }),
+    day: text("day").notNull(),
+    visitorHash: text("visitor_hash").notNull(),
+    createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
+  },
+  (t) => [
+    primaryKey({ columns: [t.postId, t.day, t.visitorHash] }),
+    index("post_view_post_id_idx").on(t.postId),
+  ],
+);
+
 export const invitation = pgTable("invitation", {
   id: text("id")
     .primaryKey()

@@ -35,6 +35,7 @@ export type StudioPost = {
   updatedAt: string;
   dateLabel: string;
   reactions: number;
+  views: number;
 };
 
 type Checklist = { photo: boolean; bio: boolean; published: boolean } | null;
@@ -241,6 +242,7 @@ export function StudioList({
         trashed: false,
         dateLabel: "À l'instant",
         reactions: 0,
+        views: 0,
       },
       ...list,
     ]);
@@ -459,6 +461,11 @@ export function StudioList({
                   {p.hasUnpublishedChanges && (
                     <span className="rounded-full bg-accent/10 px-2 py-0.5 text-accent">
                       Modifications non publiées
+                    </span>
+                  )}
+                  {p.views > 0 && (
+                    <span>
+                      {p.views} lecture{p.views > 1 ? "s" : ""}
                     </span>
                   )}
                   {p.reactions > 0 && (
