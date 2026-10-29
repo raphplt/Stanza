@@ -4,7 +4,7 @@ import type { Editor, JSONContent } from "@tiptap/core";
 import { Placeholder } from "@tiptap/extensions";
 import { EditorContent, useEditor, useEditorState } from "@tiptap/react";
 import { BubbleMenu } from "@tiptap/react/menus";
-import { useEffect, useRef, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import { toast } from "sonner";
 import { getStanzaCoreExtensions } from "@/lib/editor-extensions";
 import { foldForSearch } from "@/lib/slug";
@@ -94,11 +94,28 @@ export function RichEditor({
     index: 0,
   });
   const [linkOpen, setLinkOpen] = useState(false);
+  const [linkHref, setLinkHref] = useState("");
   const [pendingImage, setPendingImage] = useState<PendingImage>(null);
   const [editingImage, setEditingImage] = useState<ImageDetails | null>(null);
   const [focused, setFocused] = useState(false);
-  const callbacks = useRef({ onChange, onTyping, openLink: () => setLinkOpen(true), upload: handleFiles });
-  callbacks.current = { onChange, onTyping, openLink: () => setLinkOpen(true), upload: handleFiles };
+
+  const openLinkDialog = useCallback(() => {
+    const e = editorRef.current;
+    if (!e) return;
+    // Flush any pending DOM selection changes so view.state is up to date
+    // @ts-expect-error domObserver is an internal ProseMirror property
+    e.view.domObserver?.flush?.();
+    if (e.state.selection.empty && !e.isActive("link")) {
+      toast("Sélectionnez d'abord le texte à lier.");
+      return;
+    }
+    const href = (e.getAttributes("link").href as string | undefined) ?? "";
+    setLinkHref(href);
+    setLinkOpen(true);
+  }, []);
+
+  const callbacks = useRef({ onChange, onTyping, openLink: openLinkDialog, upload: handleFiles });
+  callbacks.current = { onChange, onTyping, openLink: openLinkDialog, upload: handleFiles };
 
   const slashItems: SlashItem[] = [
     {
@@ -162,7 +179,7 @@ export function RichEditor({
         "aria-label": "Contenu du texte",
         spellcheck: "true",
       },
-      handleKeyDown: (view, event) => {
+      handleKeyDown: (_view, event) => {
         callbacks.current.onTyping();
         const { state, items, index } = slashRef.current;
         if (state && items.length > 0) {
@@ -182,10 +199,6 @@ export function RichEditor({
           }
         }
         if ((event.metaKey || event.ctrlKey) && event.key.toLowerCase() === "k") {
-          if (view.state.selection.empty && !editorRef.current?.isActive("link")) {
-            toast("Sélectionnez d'abord le texte à lier.");
-            return true;
-          }
           callbacks.current.openLink();
           return true;
         }
@@ -278,7 +291,21 @@ export function RichEditor({
     else chain.unsetLink().run();
   }
 
-  if (!editor || !active) {
+  const defaultActive = {
+    bold: false,
+    italic: false,
+    strike: false,
+    link: false,
+    h2: false,
+    h3: false,
+    quote: false,
+    bulletList: false,
+    image: false,
+    href: "",
+  };
+  const currentActive = active ?? defaultActive;
+
+  if (!editor) {
     return <div className="prose-stanza mx-auto min-h-[50vh]" aria-hidden="true" />;
   }
 
@@ -286,43 +313,49 @@ export function RichEditor({
     {
       label: "Gras",
       short: "G",
-      on: active.bold,
+      on: currentActive.bold,
       run: () => editor.chain().focus().toggleBold().run(),
       cls: "font-bold",
     },
     {
       label: "Italique",
       short: "I",
-      on: active.italic,
+      on: currentActive.italic,
       run: () => editor.chain().focus().toggleItalic().run(),
       cls: "italic font-serif",
     },
     {
       label: "Barré",
       short: "S",
-      on: active.strike,
+      on: currentActive.strike,
       run: () => editor.chain().focus().toggleStrike().run(),
       cls: "line-through",
     },
-    { label: "Lien", short: "Lien", on: active.link, run: () => setLinkOpen(true), cls: "" },
+    {
+      label: "Lien",
+      short: "Lien",
+      on: currentActive.link,
+      run: openLinkDialog,
+      cls: "",
+    },
     {
       label: "Intertitre",
       short: "H2",
-      on: active.h2,
+      on: currentActive.h2,
       run: () => editor.chain().focus().toggleHeading({ level: 2 }).run(),
       cls: "",
     },
     {
       label: "Sous-intertitre",
       short: "H3",
-      on: active.h3,
+      on: currentActive.h3,
       run: () => editor.chain().focus().toggleHeading({ level: 3 }).run(),
       cls: "",
     },
     {
       label: "Citation",
       short: "“",
-      on: active.quote,
+      on: currentActive.quote,
       run: () => editor.chain().focus().toggleBlockquote().run(),
       cls: "font-serif text-lg",
     },
@@ -333,7 +366,7 @@ export function RichEditor({
     {
       label: "Liste",
       short: "•",
-      on: active.bulletList,
+      on: currentActive.bulletList,
       run: () => editor.chain().focus().toggleBulletList().run(),
       cls: "text-lg",
     },
@@ -373,7 +406,7 @@ export function RichEditor({
           options={{ placement: "top", offset: 8 }}
           className="flex items-center gap-0.5 rounded-xl border border-line bg-paper p-1 shadow-sm"
         >
-          {active.image ? (
+          {currentActive.image ? (
             <button
               type="button"
               onClick={openImageDetails}
@@ -430,12 +463,14 @@ export function RichEditor({
         <div
           role="toolbar"
           aria-label="Mise en forme"
+          onPointerDown={(e) => e.preventDefault()}
           style={{ bottom: keyboardOffset }}
           className="fixed inset-x-0 z-40 flex gap-1 overflow-x-auto border-t border-line bg-paper/95 px-2 py-1.5 backdrop-blur"
         >
-          {active.image ? (
+          {currentActive.image ? (
             <button
               type="button"
+              onPointerDown={(e) => e.preventDefault()}
               onMouseDown={(e) => e.preventDefault()}
               onClick={openImageDetails}
               className="tap shrink-0 rounded-lg px-3 text-sm"
@@ -449,6 +484,7 @@ export function RichEditor({
                 type="button"
                 aria-label={b.label}
                 aria-pressed={b.on}
+                onPointerDown={(e) => e.preventDefault()}
                 onMouseDown={(e) => e.preventDefault()}
                 onClick={b.run}
                 className={`tap shrink-0 rounded-lg px-2 text-sm ${b.cls} ${b.on ? "bg-ink text-paper" : ""}`}
@@ -474,7 +510,7 @@ export function RichEditor({
 
       <LinkDialog
         open={linkOpen}
-        initialHref={active.href}
+        initialHref={linkHref}
         onSubmit={applyLink}
         onClose={() => {
           setLinkOpen(false);

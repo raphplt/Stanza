@@ -12,6 +12,7 @@ import {
   postTag,
   REDIRECTS_TAG,
   SETTINGS_TAG,
+  SITEMAP_TAG,
 } from "@/lib/cache-tags";
 import { formatFrenchDate } from "@/lib/dates";
 
@@ -255,7 +256,12 @@ export async function getUnlistedPost(shareId: string) {
     .select({
       ...articleColumns,
       status: post.status,
-      author: { name: user.name, username: user.username, image: user.image },
+      author: {
+        name: user.name,
+        username: user.username,
+        image: user.image,
+        reactionsEnabled: user.reactionsEnabled,
+      },
     })
     .from(post)
     .innerJoin(user, eq(user.id, post.authorId))
@@ -278,6 +284,46 @@ export async function getLatestPosts(limit = 5) {
     .orderBy(desc(post.publishedAt))
     .limit(limit);
   return rows.map(toCard);
+}
+
+export async function getSitemapData() {
+  "use cache";
+  cacheLife("max");
+  cacheTag(SITEMAP_TAG);
+  const [authors, posts] = await Promise.all([
+    db
+      .select({
+        username: user.username,
+        updatedAt: sql<Date>`max(${post.lastPublishedAt})`.mapWith(post.lastPublishedAt),
+      })
+      .from(user)
+      .innerJoin(post, and(eq(post.authorId, user.id), livePost("published")))
+      .where(visibleAuthor)
+      .groupBy(user.username),
+    db
+      .select({ username: user.username, slug: post.slug, lastPublishedAt: post.lastPublishedAt })
+      .from(post)
+      .innerJoin(user, eq(user.id, post.authorId))
+      .where(and(livePost("published"), visibleAuthor))
+      .orderBy(desc(post.publishedAt)),
+  ]);
+  return { authors, posts };
+}
+
+export async function getAuthorFeed(username: string) {
+  "use cache";
+  cacheLife("max");
+  cacheTag(authorUsernameTag(username));
+  const author = await findVisibleAuthor(username);
+  if (!author) return null;
+  cacheTag(authorTag(author.id));
+  const posts = await db
+    .select({ ...cardColumns, html: post.publishedHtml, lastPublishedAt: post.lastPublishedAt })
+    .from(post)
+    .where(and(eq(post.authorId, author.id), livePost("published")))
+    .orderBy(desc(post.publishedAt), desc(post.id))
+    .limit(50);
+  return { author, posts: posts.map(toCard) };
 }
 
 export async function getSampleParams() {

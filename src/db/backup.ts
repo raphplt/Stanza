@@ -113,6 +113,7 @@ const DATE_KEYS = new Set([
   "accessTokenExpiresAt",
   "refreshTokenExpiresAt",
   "publishedAt",
+  "lastPublishedAt",
   "pinnedAt",
   "usedAt",
   "revokedAt",

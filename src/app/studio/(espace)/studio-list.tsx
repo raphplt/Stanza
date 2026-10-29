@@ -15,6 +15,7 @@ import {
   duplicatePostAction,
   emptyTrashAction,
   purgePostAction,
+  resetReactionsAction,
   restorePostAction,
   togglePinAction,
   trashPostAction,
@@ -94,6 +95,8 @@ export function StudioList({
   const [purgeTarget, setPurgeTarget] = useState<StudioPost | "all" | null>(null);
   const [creating, startCreating] = useTransition();
   const [purging, startPurging] = useTransition();
+  const [resetTarget, setResetTarget] = useState<StudioPost | null>(null);
+  const [resetting, startResetting] = useTransition();
 
   useEffect(() => {
     const params = new URLSearchParams();
@@ -237,6 +240,21 @@ export function StudioList({
     });
   }
 
+  function confirmReset() {
+    const target = resetTarget;
+    if (!target) return;
+    startResetting(async () => {
+      const res = await resetReactionsAction(target.id);
+      if (!res.ok) {
+        toast.error(res.error);
+        return;
+      }
+      patchPost(target.id, { reactions: 0 });
+      setResetTarget(null);
+      toast("Réactions réinitialisées");
+    });
+  }
+
   function menuItems(p: StudioPost): MenuItem[] {
     if (p.trashed) {
       return [
@@ -261,6 +279,9 @@ export function StudioList({
         label: p.pinned ? "Désépingler" : "Épingler sur le profil",
         onSelect: () => togglePin(p),
       });
+    }
+    if (p.reactions > 0) {
+      items.push({ label: "Réinitialiser les réactions", onSelect: () => setResetTarget(p) });
     }
     if (live) items.push({ label: "Dépublier", onSelect: () => unpublish(p) });
     items.push({ label: "Supprimer", danger: true, onSelect: () => trash(p) });
@@ -451,6 +472,16 @@ export function StudioList({
         {purgeTarget === "all"
           ? "Tous les textes de la corbeille et leur historique seront effacés. Cette action est irréversible."
           : "Ce texte et son historique seront effacés. Cette action est irréversible."}
+      </ConfirmDialog>
+      <ConfirmDialog
+        open={resetTarget !== null}
+        title="Réinitialiser les réactions ?"
+        confirmLabel="Réinitialiser"
+        pending={resetting}
+        onConfirm={confirmReset}
+        onClose={() => setResetTarget(null)}
+      >
+        Les {resetTarget?.reactions} réactions de ce texte seront effacées. Cette action est irréversible.
       </ConfirmDialog>
     </div>
   );

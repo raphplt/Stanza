@@ -293,3 +293,7 @@
 .ProseMirror .ProseMirror-gapcursor::after {
   border-top-color: var(--ink);
 }
+
+nextjs-portal {
+  pointer-events: none !important;
+}

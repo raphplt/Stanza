@@ -70,13 +70,18 @@ export function ImageDialog({
 }) {
   const [alt, setAlt] = useState(initial.alt);
   const [caption, setCaption] = useState(initial.caption);
+  const [prevOpen, setPrevOpen] = useState(open);
+  const [prevInitial, setPrevInitial] = useState(initial);
 
-  useEffect(() => {
-    if (open) {
-      setAlt(initial.alt);
-      setCaption(initial.caption);
-    }
-  }, [open, initial.alt, initial.caption]);
+  if (
+    open !== prevOpen ||
+    (open && (initial.alt !== prevInitial.alt || initial.caption !== prevInitial.caption))
+  ) {
+    setPrevOpen(open);
+    setPrevInitial(initial);
+    setAlt(initial.alt);
+    setCaption(initial.caption);
+  }
 
   return (
     <Dialog open={open} onClose={onClose} title="Décrire l'image">
@@ -138,14 +143,16 @@ export function LinkDialog({
   onClose: () => void;
 }) {
   const [href, setHref] = useState(initialHref);
+  const [prevOpen, setPrevOpen] = useState(open);
+  const [prevInitialHref, setPrevInitialHref] = useState(initialHref);
   const [error, setError] = useState<string | null>(null);
 
-  useEffect(() => {
-    if (open) {
-      setHref(initialHref);
-      setError(null);
-    }
-  }, [open, initialHref]);
+  if (open !== prevOpen || (open && initialHref !== prevInitialHref)) {
+    setPrevOpen(open);
+    setPrevInitialHref(initialHref);
+    setHref(initialHref);
+    setError(null);
+  }
 
   return (
     <Dialog open={open} onClose={onClose} title={initialHref ? "Modifier le lien" : "Ajouter un lien"}>

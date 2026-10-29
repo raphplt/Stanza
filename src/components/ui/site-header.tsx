@@ -6,6 +6,8 @@ import { useRouter } from "next/navigation";
 import { useEffect, useRef, useState, useTransition } from "react";
 import { logoutAction } from "@/app/(auth)/actions";
 import { createDraftPostAction } from "@/app/studio/actions";
+import type { UserTheme } from "@/db/schema";
+import { applyTheme, storedTheme } from "@/lib/theme";
 
 export type HeaderUser = {
   id: string;
@@ -13,6 +15,7 @@ export type HeaderUser = {
   username: string;
   image: string | null;
   role: "author" | "superadmin";
+  theme: UserTheme;
 };
 
 export function SiteHeader({
@@ -29,6 +32,11 @@ export function SiteHeader({
   const [hidden, setHidden] = useState(false);
   const [isPending, startTransition] = useTransition();
   const menuRef = useRef<HTMLDivElement>(null);
+
+  const theme = user?.theme;
+  useEffect(() => {
+    if (theme && theme !== storedTheme()) applyTheme(theme);
+  }, [theme]);
 
   useEffect(() => {
     if (!autoHideOnScroll) return;

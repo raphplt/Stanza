@@ -11,6 +11,7 @@ export async function SiteHeaderServer({ autoHideOnScroll = false }: { autoHideO
         username: session.user.username,
         image: session.user.image,
         role: session.user.role,
+        theme: session.user.theme,
       }
     : null;
   return <SiteHeader user={user} autoHideOnScroll={autoHideOnScroll} readOnlyMode={readOnlyMode} />;

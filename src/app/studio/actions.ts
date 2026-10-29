@@ -5,7 +5,8 @@ import { and, count, desc, eq, isNotNull, isNull, notInArray } from "drizzle-orm
 import { nanoid } from "nanoid";
 import { z } from "zod";
 import { db } from "@/db/client";
-import { post, postRevision, type RevisionReason, redirectTable, user } from "@/db/schema";
+import { post, postRevision, type RevisionReason, reaction, redirectTable, user } from "@/db/schema";
+import { requireWriter, run } from "@/lib/action-utils";
 import {
   invalidateAuthorPublicCache,
   invalidatePostPublicCache,
@@ -14,7 +15,7 @@ import {
   touchTag,
 } from "@/lib/cache-tags";
 import { uuidv7 } from "@/lib/id";
-import { assertOwner, assertWritable, PermissionError, requireActionUser } from "@/lib/permissions";
+import { assertOwner, PermissionError, requireActionUser } from "@/lib/permissions";
 import {
   applyDiscardUnpublishedChanges,
   applyDraftEdit,
@@ -37,30 +38,6 @@ const MAX_REVISIONS = 50;
 const AUTO_REVISION_INTERVAL_MS = 10 * 60 * 1000;
 const MAX_PINNED = 3;
 const MAX_CONTENT_BYTES = 1_000_000;
-
-type Failure = { ok: false; error: string };
-type Result<T = object> = ({ ok: true } & T) | Failure;
-
-async function run<T extends object>(fn: () => Promise<T>): Promise<Result<T>> {
-  try {
-    return { ok: true, ...(await fn()) };
-  } catch (e) {
-    if (e instanceof PermissionError || e instanceof z.ZodError) {
-      return {
-        ok: false,
-        error: e instanceof z.ZodError ? (e.issues[0]?.message ?? "Données invalides.") : e.message,
-      };
-    }
-    console.error(e);
-    return { ok: false, error: "Une erreur inattendue est survenue." };
-  }
-}
-
-async function requireWriter() {
-  const data = await requireActionUser();
-  await assertWritable();
-  return data.user;
-}
 
 async function loadOwnedPost(postId: string, userId: string): Promise<PostRow> {
   const row = await db.query.post.findFirst({ where: eq(post.id, z.uuid().parse(postId)) });
@@ -409,6 +386,15 @@ export async function togglePinAction(postId: string) {
     await db.update(post).set({ pinnedAt }).where(eq(post.id, current.id));
     invalidateAuthorPublicCache(me.id, me.username);
     return { pinned: Boolean(pinnedAt) };
+  });
+}
+
+export async function resetReactionsAction(postId: string) {
+  return run(async () => {
+    const me = await requireWriter();
+    const current = await loadOwnedPost(postId, me.id);
+    await db.delete(reaction).where(eq(reaction.postId, current.id));
+    return {};
   });
 }
 

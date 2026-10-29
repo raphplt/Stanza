@@ -1,5 +1,4 @@
 import { count, eq, inArray } from "drizzle-orm";
-import { Suspense } from "react";
 import { db } from "@/db/client";
 import { post, reaction } from "@/db/schema";
 import { formatShortFrenchDate } from "@/lib/dates";
@@ -7,15 +6,9 @@ import { requireUser } from "@/lib/permissions";
 import { generateDefaultExcerpt } from "@/lib/render";
 import { StudioList, type StudioPost } from "./studio-list";
 
-export default function StudioPage() {
-  return (
-    <Suspense fallback={<StudioSkeleton />}>
-      <StudioContent />
-    </Suspense>
-  );
-}
+export const instant = false;
 
-async function StudioContent() {
+export default async function StudioPage() {
   const { user } = await requireUser();
   const rows = await db.query.post.findMany({
     where: eq(post.authorId, user.id),
@@ -67,21 +60,4 @@ async function StudioContent() {
       : { photo: Boolean(user.image), bio: Boolean(user.bio), published: hasPublished };
 
   return <StudioList posts={posts} username={user.username} checklist={checklist} />;
-}
-
-function StudioSkeleton() {
-  return (
-    <div aria-hidden="true">
-      <div className="flex items-center justify-between">
-        <div className="h-9 w-32 rounded-lg bg-surface" />
-        <div className="h-11 w-36 rounded-full bg-surface" />
-      </div>
-      <div className="mt-8 h-11 w-full max-w-md rounded-lg bg-surface/70" />
-      <div className="mt-6 space-y-3">
-        {[0, 1, 2, 3].map((i) => (
-          <div key={i} className="h-24 rounded-xl bg-surface/60" />
-        ))}
-      </div>
-    </div>
-  );
 }

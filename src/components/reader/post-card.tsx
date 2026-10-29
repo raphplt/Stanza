@@ -16,14 +16,14 @@ export function PostCard({ post }: { post: PostCardData }) {
   return (
     <article className="group relative flex gap-5 py-6">
       <div className="min-w-0 flex-1">
-        <h3 className="font-serif text-xl leading-snug font-medium tracking-tight">
+        <h2 className="font-serif text-xl leading-snug font-medium tracking-tight">
           <Link
             href={post.href}
             className="after:absolute after:inset-0 after:content-[''] group-hover:underline group-hover:decoration-line group-hover:underline-offset-4"
           >
             {post.title || "Sans titre"}
           </Link>
-        </h3>
+        </h2>
         {post.excerpt && <p className="mt-2 line-clamp-3 font-serif text-base text-muted">{post.excerpt}</p>}
         <p className="mt-3 text-xs text-muted">
           <time dateTime={post.dateIso}>{post.dateLabel}</time>
